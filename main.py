@@ -1,16 +1,12 @@
 import sys
-from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QApplication, QMainWindow
-
-import keyboard as keyboard
-
+import multiprocessing
 from ObjectDetection import ObjectDetection
-app = QApplication(sys.argv)
-win = QMainWindow()
-win.setGeometry(200, 200, 300, 300)
-win.setWindowTitle("ObjectDetection")
-win.show()
+from UI import UI
+import cv2 as cv
+import threading
+import keyboard as keyboard
+from Screenshot import Screenshot as ss
 
-while not (keyboard.is_pressed('§')):
+ss.capture_screen()
 
-    ObjectDetection.find_object()
+
