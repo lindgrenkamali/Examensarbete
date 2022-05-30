@@ -18,6 +18,7 @@ from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 from PIL import Image
 import numpy as np
+from ObjectDetection import ObjectDetection
 
 
 class Ui_MainWindow(object):
@@ -32,19 +33,26 @@ class Ui_MainWindow(object):
         self.screen.setText("")
         self.screen.setScaledContents(True)
         self.screen.setObjectName("screen")
+        black = QPixmap(16,16)
+        black.fill(Qt.black)
+
+        self.black = black
+
+        self.screen.setPixmap(self.black)
         self.Threshold = QtWidgets.QSlider(self.centralwidget)
         self.Threshold.setGeometry(QtCore.QRect(10, 450, 160, 16))
-        self.Threshold.setMaximum(10)
+        self.Threshold.setMaximum(100)
         self.Threshold.setOrientation(QtCore.Qt.Horizontal)
         self.Threshold.setObjectName("Threshold")
-        self.Start_ObjectDetection = QtWidgets.QPushButton(self.centralwidget)
-        self.Start_ObjectDetection.setGeometry(QtCore.QRect(170, 500, 131, 31))
-        self.Start_ObjectDetection.setObjectName("Start_ObjectDetection")
-        self.Start_ObjectDetection.clicked.connect(self.start_OD)
-        self.Stop_ObjectDetection = QtWidgets.QPushButton(self.centralwidget)
-        self.Stop_ObjectDetection.setGeometry(QtCore.QRect(340, 500, 131, 31))
-        self.Stop_ObjectDetection.setObjectName("Stop_ObjectDetection")
-        self.Stop_ObjectDetection.clicked.connect(self.stop_OD)
+        self.Threshold.valueChanged.connect(self.update_threshold)
+        self.thresholdLabel = QtWidgets.QLabel(self.centralwidget)
+        self.thresholdLabel.setGeometry(QtCore.QRect(200, 450, 160, 16))
+        self.thresholdLabel.setObjectName("thresholdLabel")
+        self.StartStop_ObjectDetection = QtWidgets.QPushButton(self.centralwidget)
+        self.StartStop_ObjectDetection.setGeometry(QtCore.QRect(170, 500, 131, 31))
+        self.StartStop_ObjectDetection.setObjectName("StartStop_ObjectDetection")
+        self.StartStop_ObjectDetection.clicked.connect(self.startStopButton)
+        self.StartStop_ObjectDetection.setEnabled(False)
         self.toolButton = QtWidgets.QToolButton(self.centralwidget)
         self.toolButton.setGeometry(QtCore.QRect(10, 500, 121, 31))
         self.toolButton.setObjectName("toolButton")
@@ -57,31 +65,22 @@ class Ui_MainWindow(object):
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
-
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.Start_ObjectDetection.setText(_translate("MainWindow", "Start"))
-        self.Stop_ObjectDetection.setText(_translate("MainWindow", "Stop"))
+        self.StartStop_ObjectDetection.setText(_translate("MainWindow", "Start"))
         self.toolButton.setText(_translate("MainWindow", "Choose file"))
+        self.thresholdLabel.setText(_translate("MainWindow", str(self.Threshold.value()) / 100))
 
-
-    def start_OD(self):
-        self.Worker = Worker()
-        self.Worker.start()
-        self.Worker.ImageUpdate.connect(self.update_image_slot)
-
-
-    def stop_OD(self):
-        self.Worker.stop()
 
     def get_object(self):
         Tk().withdraw()
-        filename = askopenfilename()
-        print(filename)
+        self.objectpath = askopenfilename()
+        self.StartStop_ObjectDetection.setEnabled(True)
+
 
     def update_image_slot(self, nparray):
 
@@ -92,15 +91,34 @@ class Ui_MainWindow(object):
         Pic = ConvertToQtFormat.scaled(640, 480, Qt.KeepAspectRatio)
         self.screen.setPixmap(QPixmap.fromImage(Pic))
 
+    def black_screen(self):
+        self.screen.setPixmap(self.black)
+
     def startStopButton(self):
+        if self.StartStop_ObjectDetection.text() == "Start":
+            self.objectdetetction = ObjectDetection(self.Threshold.value() / 100, self.objectpath)
+            self.Worker = Worker()
+            self.Worker.start()
+            self.Worker.ImageUpdate.connect(self.update_image_slot)
+            self.Worker.BlackScreen.connect(self.black_screen)
+            self.StartStop_ObjectDetection.setText("Stop")
 
+        elif self.StartStop_ObjectDetection.text() == "Stop":
+            self.Worker.stop()
+            self.StartStop_ObjectDetection.setText("Start")
 
+    def update_threshold(self):
+        self.thresholdLabel.setText(str(self.Threshold.value() / 100))
+
+        if hasattr(self, 'objectdetetction'):
+            self.objectdetetction.threshold = self.Threshold.value() / 100
 
 
 
 class Worker(QThread):
 
     ImageUpdate = pyqtSignal(np.ndarray)
+    BlackScreen = pyqtSignal()
 
     def run(self):
         self.ThreadActive = True
@@ -108,6 +126,7 @@ class Worker(QThread):
         while self.ThreadActive:
             self.ImageUpdate.emit(ss.capture_screen())
 
+        self.BlackScreen.emit()
 
     def stop(self):
         self.ThreadActive = False

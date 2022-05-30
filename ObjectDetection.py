@@ -1,13 +1,21 @@
 import cv2 as cv
 import numpy as np
-import pyautogui
 from win32api import GetSystemMetrics
 from Screenshot import Screenshot as ss
 import win32api, win32con
 
+
 class ObjectDetection:
-    @staticmethod
-    def find_object():
+
+    def __init__(self, threshold, object):
+        self.threshold = threshold
+        self.object = object
+
+    def round_threshold(self):
+        if self.threshold > 0:
+            self.threshold = self.threshold / 100
+
+    def find_object(self):
         screenshot = ss.capture_screen()
 
         photo_img = cv.imread('Objects/CSGO/csgo.jpg', cv.IMREAD_UNCHANGED)
@@ -21,7 +29,7 @@ class ObjectDetection:
         ward_w = object_img.shape[1]
         ward_h = object_img.shape[0]
 
-        threshold = 0.5
+        threshold = self.threshold
         loc = np.where(result >= threshold)
 
         loc = list(zip(*loc[::-1]))
