@@ -3,7 +3,8 @@ import numpy as np
 from win32api import GetSystemMetrics
 from Screenshot import Screenshot as ss
 import win32api, win32con
-
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
 
 class ObjectDetection:
 
@@ -57,3 +58,10 @@ class ObjectDetection:
             cv.imshow('Matches', screenshot)
         else:
             print("No image found")
+
+    def np_to_qimage(self, np, w, h):
+        cvImage = cv.cvtColor(np, cv.COLOR_RGB2BGR)
+
+        ConvertToQtFormat = QImage(cvImage.data, cvImage.shape[1], cvImage.shape[0], QImage.Format_RGB888)
+        Pic = ConvertToQtFormat.scaled(w, h, Qt.KeepAspectRatio)
+        self.screen.setPixmap(QPixmap.fromImage(Pic))

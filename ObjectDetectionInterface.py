@@ -44,11 +44,7 @@ class CornerWindow(QWidget):
         layout.addWidget(self.screen)
 
     def update_image_slot(self, nparray):
-        cvImage = cv2.cvtColor(nparray, cv2.COLOR_RGB2BGR)
-
-        ConvertToQtFormat = QImage(cvImage.data, cvImage.shape[1], cvImage.shape[0], QImage.Format_RGB888)
-        Pic = ConvertToQtFormat.scaled(320, 180, Qt.KeepAspectRatio)
-        self.screen.setPixmap(QPixmap.fromImage(Pic))
+        ObjectDetection.np_to_qimage(self, nparray, 320, 180)
 
     def move_window(self):
         self.move(self.x, self.y)
@@ -208,11 +204,8 @@ class Ui_MainWindow(object):
 
     def update_image_slot(self, nparray):
 
-        cvImage = cv2.cvtColor(nparray, cv2.COLOR_RGB2BGR)
+        ObjectDetection.np_to_qimage(self, nparray, 640, 480)
 
-        ConvertToQtFormat = QImage(cvImage.data, cvImage.shape[1], cvImage.shape[0], QImage.Format_RGB888)
-        Pic = ConvertToQtFormat.scaled(640, 480, Qt.KeepAspectRatio)
-        self.screen.setPixmap(QPixmap.fromImage(Pic))
 
 
     def black_screen(self):
