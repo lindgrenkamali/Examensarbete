@@ -1,3 +1,4 @@
+import cv2
 import cv2 as cv
 import numpy as np
 from win32api import GetSystemMetrics
@@ -5,63 +6,74 @@ from Screenshot import Screenshot as ss
 import win32api, win32con
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
+from PIL import Image
+import mss
+import time
+
 
 class ObjectDetection:
 
-    def __init__(self, threshold, object):
+    def __init__(self, threshold, mode):
         self.threshold = threshold
-        self.object = object
+        self.mode = mode
+
 
     def round_threshold(self):
         if self.threshold > 0:
             self.threshold = self.threshold / 100
 
-    def find_object(self):
-        screenshot = ss.capture_screen()
 
-        photo_img = cv.imread('Objects/CSGO/csgo.jpg', cv.IMREAD_UNCHANGED)
-        object_img = cv.imread('Objects/CSGO/terrorist.jpg', cv.IMREAD_UNCHANGED)
+    def np_to_qimage(self, np, w, h):
+        cvImage = cv.cvtColor(np, cv.COLOR_BGR2RGB)
+        ConvertToQtFormat = QImage(cvImage.data, cvImage.shape[1], cvImage.shape[0], QImage.Format_RGB888)
+        Pic = ConvertToQtFormat.scaled(w, h, Qt.KeepAspectRatio)
+        return QPixmap.fromImage(Pic)
 
-        result = cv.matchTemplate(screenshot, object_img, cv.TM_CCOEFF_NORMED)
+    def detect_objects(self, currentImage, width, height):
 
-        # get best match pos
-        min_val, max_val, min_loc, max_loc = cv.minMaxLoc(result)
+        currentImage = cv.cvtColor(currentImage, cv.COLOR_RGB2BGR)
 
-        ward_w = object_img.shape[1]
-        ward_h = object_img.shape[0]
+        currentImage = cv.cvtColor(currentImage, cv.COLOR_BGR2RGB)
 
-        threshold = self.threshold
-        loc = np.where(result >= threshold)
+        objectImage = cv.imread('Objects/CSGO/head.jpg', cv.IMREAD_UNCHANGED)
 
-        loc = list(zip(*loc[::-1]))
+        result = cv.matchTemplate(currentImage, objectImage, cv.TM_CCOEFF_NORMED)
+
+        object_w = objectImage.shape[1]
+        object_h = objectImage.shape[0]
+
+        results = np.where(result >= 0.6)
+
+        locations = list(zip(*results[::-1]))
 
         rectangles = []
-        for l in loc:
-            rect = [int(l[0]), int(l[1]), ward_w, ward_h]
-            rectangles.append(rect)
+        for l in locations:
+            rectangle = [int(l[0]), int(l[1]), object_w, object_h]
+            rectangles.append(rectangle)
+            rectangles.append(rectangle)
 
         rectangles, weights = cv.groupRectangles(rectangles, 1, 0.5)
 
         if len(rectangles):
-            print("Found images")
-            line_color = (255, 0, 0)
+
+            red = (255, 0, 0)
             line_type = cv.LINE_4
-            marker_color = (0, 0, 255)
-            marker_type = cv.MARKER_SQUARE
+            marker_type = cv.MARKER_CROSS
 
             for (x, y, w, h) in rectangles:
-                top_left = (x, y)
-                bottom_right = (x + w, y + h)
-                cv.rectangle(photo_img, top_left, bottom_right, marker_color, marker_type)
-                win32api.SetCursorPos((x + int(w / 2), y + int(h / 2)))
 
-            cv.imshow('Matches', screenshot)
-        else:
-            print("No image found")
+                if self.mode == "Default":
+                    top_left = (x, y)
+                    bottom_right = (x + w, y + h)
 
-    def np_to_qimage(self, np, w, h):
-        cvImage = cv.cvtColor(np, cv.COLOR_RGB2BGR)
+                    cv.rectangle(currentImage, top_left, bottom_right, red, 2, line_type)
 
-        ConvertToQtFormat = QImage(cvImage.data, cvImage.shape[1], cvImage.shape[0], QImage.Format_RGB888)
-        Pic = ConvertToQtFormat.scaled(w, h, Qt.KeepAspectRatio)
-        self.screen.setPixmap(QPixmap.fromImage(Pic))
+                elif self.mode == "FPS":
+                    center_x = x + int(w/2)
+                    center_y = y + int(h/2)
+                    cv.drawMarker(currentImage, (center_x, center_y), red, marker_type)
+
+
+        return currentImage
+
+

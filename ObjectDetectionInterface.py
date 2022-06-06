@@ -19,6 +19,7 @@ from tkinter.filedialog import askopenfilename
 from PIL import Image
 import numpy as np
 from ObjectDetection import ObjectDetection
+import time
 
 
 class CornerWindow(QWidget):
@@ -34,7 +35,7 @@ class CornerWindow(QWidget):
         self.setFixedSize(320, 180)
         self.move(x, y)
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint | QtCore.Qt.WindowStaysOnTopHint)
-
+        self.objectdetection = ObjectDetection(0.5, "Default")
         self.screen = QLabel()
         self.Worker = Worker()
         self.Worker.ImageUpdate.connect(self.update_image_slot)
@@ -43,8 +44,12 @@ class CornerWindow(QWidget):
         self.screen.setPixmap(black)
         layout.addWidget(self.screen)
 
-    def update_image_slot(self, nparray):
-        ObjectDetection.np_to_qimage(self, nparray, 320, 180)
+    def update_image_slot(self, np):
+        cvImage = cv2.cvtColor(np, cv2.COLOR_BGR2RGB)
+        ConvertToQtFormat = QImage(cvImage.data, cvImage.shape[1], cvImage.shape[0], QImage.Format_RGB888)
+        Pic = ConvertToQtFormat.scaled(320, 180, Qt.KeepAspectRatio)
+        Pic = QPixmap.fromImage(Pic)
+        self.screen.setPixmap(Pic)
 
     def move_window(self):
         self.move(self.x, self.y)
@@ -202,20 +207,21 @@ class Ui_MainWindow(object):
         self.corner.move_window()
 
 
-    def update_image_slot(self, nparray):
-
-        ObjectDetection.np_to_qimage(self, nparray, 640, 480)
-
-
+    def update_image_slot(self, np):
+        cvImage = cv2.cvtColor(np, cv2.COLOR_BGR2RGB)
+        ConvertToQtFormat = QImage(cvImage.data, cvImage.shape[1], cvImage.shape[0], QImage.Format_RGB888)
+        Pic = ConvertToQtFormat.scaled(640, 360, Qt.KeepAspectRatio)
+        Pic = QPixmap.fromImage(Pic)
+        self.screen.setPixmap(Pic)
 
     def black_screen(self):
         self.screen.setPixmap(self.black)
 
     def startStopButton(self):
         if self.startStop_ObjectDetection.text() == "Start":
+            self.objectdetetction = ObjectDetection(self.threshold.value() / 100, self.mode)
             self.corner.show()
             self.corner.Worker.start()
-            self.objectdetetction = ObjectDetection(self.threshold.value() / 100, self.objectpath)
             self.Worker = Worker()
             self.Worker.start()
             self.Worker.ImageUpdate.connect(self.update_image_slot)
@@ -243,15 +249,18 @@ class Worker(QThread):
 
     def run(self):
         self.ThreadActive = True
+        self.od = ObjectDetection(1, 'Default')
 
         while self.ThreadActive:
-            self.ImageUpdate.emit(ss.capture_screen())
+            qimage = self.od.detect_objects(ss.capture_screen(), 320, 180)
+            self.ImageUpdate.emit(np.array(qimage))
 
         self.BlackScreen.emit()
 
     def stop(self):
         self.ThreadActive = False
         self.quit()
+
 
 
 if __name__ == "__main__":

@@ -7,6 +7,8 @@ import threading
 import keyboard as keyboard
 from Screenshot import Screenshot as ss
 
-ss.capture_screen()
+nparray = ss.capture_screen()
 
+od = ObjectDetection(0.15, "Default")
+od.detect_objects(nparray, 1, 2)
 
