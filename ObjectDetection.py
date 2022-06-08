@@ -14,13 +14,8 @@ import time
 class ObjectDetection:
 
     def __init__(self, threshold, mode):
-        self.threshold = threshold
+        self.threshold = threshold / 100
         self.mode = mode
-
-
-    def round_threshold(self):
-        if self.threshold > 0:
-            self.threshold = self.threshold / 100
 
 
     def np_to_qimage(self, np, w, h):
@@ -29,21 +24,20 @@ class ObjectDetection:
         Pic = ConvertToQtFormat.scaled(w, h, Qt.KeepAspectRatio)
         return QPixmap.fromImage(Pic)
 
-    def detect_objects(self, currentImage, width, height):
+    def detect_objects(self, currentImage, objects):
 
         currentImage = cv.cvtColor(currentImage, cv.COLOR_RGB2BGR)
 
         currentImage = cv.cvtColor(currentImage, cv.COLOR_BGR2RGB)
 
-        objectImage = cv.imread('Objects/CSGO/head.jpg', cv.IMREAD_UNCHANGED)
+        objectImage = objects[0]
 
         result = cv.matchTemplate(currentImage, objectImage, cv.TM_CCOEFF_NORMED)
 
         object_w = objectImage.shape[1]
         object_h = objectImage.shape[0]
 
-        results = np.where(result >= 0.6)
-
+        results = np.where(result >= self.threshold)
         locations = list(zip(*results[::-1]))
 
         rectangles = []
@@ -52,7 +46,7 @@ class ObjectDetection:
             rectangles.append(rectangle)
             rectangles.append(rectangle)
 
-        rectangles, weights = cv.groupRectangles(rectangles, 1, 0.5)
+        rectangles, weights = cv.groupRectangles(rectangles, groupThreshold=1, eps=0.5)
 
         if len(rectangles):
 
@@ -72,7 +66,6 @@ class ObjectDetection:
                     center_x = x + int(w/2)
                     center_y = y + int(h/2)
                     cv.drawMarker(currentImage, (center_x, center_y), red, marker_type)
-
 
         return currentImage
 

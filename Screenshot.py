@@ -17,3 +17,7 @@ class Screenshot:
             screenshot = mss_instance.grab(monitor)
             nparray = np.array(screenshot)
             return nparray
+
+    @staticmethod
+    def path_to_cvimage(filepath):
+        return cv.imread(filepath, cv.IMREAD_UNCHANGED)
