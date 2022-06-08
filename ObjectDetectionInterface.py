@@ -150,13 +150,16 @@ class Ui_MainWindow(object):
         self.radioButton_mode_Default.setGeometry(QtCore.QRect(70, 500, 95, 20))
         self.radioButton_mode_Default.setChecked(True)
         self.radioButton_mode_Default.setObjectName("Default")
+        self.radioButton_mode_Default.clicked.connect(self.update_mode)
         self.mode = self.radioButton_mode_Default.objectName()
+
 
         self.defaultLabel.setGeometry(QtCore.QRect(100, 500, 50, 16))
         self.defaultLabel.setObjectName("defaultLabel")
 
         self.radiobutton_mode_FPS.setGeometry(QtCore.QRect(170, 500, 95, 20))
         self.radiobutton_mode_FPS.setObjectName("FPS")
+        self.radiobutton_mode_FPS.clicked.connect(self.update_mode)
 
         self.fpsLabel.setGeometry(QtCore.QRect(200, 500, 160, 16))
         self.fpsLabel.setObjectName("fpsLabel")
@@ -233,6 +236,15 @@ class Ui_MainWindow(object):
     def update_threshold(self):
         threshold = self.threshold.value()
         self.thresholdLabel.setText(str(threshold / 100))
+
+    def update_mode(self):
+        if self.radioButton_mode_Default.isChecked():
+            self.mode = 'Default'
+
+        elif self.radiobutton_mode_FPS.isChecked():
+            self.mode = 'FPS'
+
+        print(self.mode)
 
 
 class Worker(QThread):
