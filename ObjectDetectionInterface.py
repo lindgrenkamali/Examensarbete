@@ -12,39 +12,43 @@ import cv2
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
-from Screenshot import Screenshot as ss
+from PhotoManager import PhotoManager as pm
 from PyQt5 import QtCore, QtGui, QtWidgets
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 import numpy as np
 from ObjectDetection import ObjectDetection
-
+from win32api import GetSystemMetrics
+from ScreenManager import ScreenManager
 
 class CornerWindow(QWidget):
-    def __init__(self, x, y):
+    def __init__(self, x, y, sm, width, height):
         super().__init__()
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         self.run_objectdetection = True
+        self.SM = sm
         self.x = 0
         self.y = 0
         self.setLayout(layout)
-        self.setFixedSize(320, 180)
+        self.Width = width
+        self.Height = height
+        self.setFixedSize(self.SM.GetSize(320), self.SM.GetSize(180))
         self.move(x, y)
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint | QtCore.Qt.WindowStaysOnTopHint)
 
-        self.screen = QLabel()
-        black = QPixmap(360, 1440)
+        self.Screen = QLabel()
+        black = QPixmap(self.SM.GetSize(360), self.SM.GetSize(1440))
         black.fill(Qt.black)
-        self.screen.setPixmap(black)
-        layout.addWidget(self.screen)
+        self.Screen.setPixmap(black)
+        layout.addWidget(self.Screen)
 
     def update_image_slot(self, np):
         cvImage = cv2.cvtColor(np, cv2.COLOR_BGR2RGB)
         ConvertToQtFormat = QImage(cvImage.data, cvImage.shape[1], cvImage.shape[0], QImage.Format_RGB888)
-        Pic = ConvertToQtFormat.scaled(320, 180, Qt.KeepAspectRatio)
+        Pic = ConvertToQtFormat.scaled(self.SM.GetSize(320), self.SM.GetSize(180), Qt.KeepAspectRatio)
         Pic = QPixmap.fromImage(Pic)
-        self.screen.setPixmap(Pic)
+        self.Screen.setPixmap(Pic)
 
     def move_window(self):
         self.move(self.x, self.y)
@@ -54,56 +58,64 @@ class Ui_MainWindow(object):
 
     def __init__(self):
         super().__init__()
-        self.corner_x = 0
-        self.corner_y = 0
-        self.centralwidget = QtWidgets.QWidget(MainWindow)
-        self.start_stop = QtWidgets.QPushButton(self.centralwidget)
-        self.toolbutton = QtWidgets.QToolButton(self.centralwidget)
-        self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.statusbar = QtWidgets.QStatusBar(MainWindow)
-        self.corner = CornerWindow(self.corner_x, self.corner_y)
-        self.screen = QtWidgets.QLabel(self.centralwidget)
-        self.threshold = QtWidgets.QSlider(self.centralwidget)
-        self.radioButton_mode_Default = QtWidgets.QRadioButton(self.centralwidget)
-        self.radiobutton_mode_FPS = QtWidgets.QRadioButton(self.centralwidget)
-        self.positionBox = QtWidgets.QComboBox(self.centralwidget)
-        self.plainText = QPlainTextEdit(self.centralwidget)
-        self.plainText.setGeometry(QtCore.QRect(350, 405, 350, 330))
-        self.plainText.setReadOnly(True)
-        self.files = []
+        screenwidth = GetSystemMetrics(0)
+        screenheight = GetSystemMetrics(1)
 
-        self.thresholdLabel = QtWidgets.QLabel(self.centralwidget)
-        self.modeLabel = QtWidgets.QLabel(self.centralwidget)
-        self.fpsLabel = QtWidgets.QLabel(self.centralwidget)
-        self.positionLabel = QtWidgets.QLabel(self.centralwidget)
-        self.defaultLabel = QtWidgets.QLabel(self.centralwidget)
-        self.mode = "Default"
+        self.SM = ScreenManager(screenwidth, screenheight)
+        self.Corner_x = 0
+        self.Corner_y = 0
+        self.centralwidget = QtWidgets.QWidget(MainWindow)
+        self.Start_Stop = QtWidgets.QPushButton(self.centralwidget)
+        self.ToolButton = QtWidgets.QToolButton(self.centralwidget)
+        self.MenuBar = QtWidgets.QMenuBar(MainWindow)
+        self.statusbar = QtWidgets.QStatusBar(MainWindow)
+        self.Corner = CornerWindow(self.Corner_x, self.Corner_y, self.SM, 320, 180)
+        self.Screen = QtWidgets.QLabel(self.centralwidget)
+        self.Threshold = QtWidgets.QSlider(self.centralwidget)
+        self.RadioButton_mode_Default = QtWidgets.QRadioButton(self.centralwidget)
+        self.RadioButton_mode_FPS = QtWidgets.QRadioButton(self.centralwidget)
+        self.ResolutionBox = QtWidgets.QComboBox(self.centralwidget)
+        self.PositionBox = QtWidgets.QComboBox(self.centralwidget)
+        self.PlainText = QPlainTextEdit(self.centralwidget)
+        self.PlainText.setGeometry(QtCore.QRect(self.SM.GetSize(370), self.SM.GetSize(405),
+                                                self.SM.GetSize(350), self.SM.GetSize(300)))
+        self.PlainText.setReadOnly(True)
+        self.Files = []
+
+        self.ResolutionLabel = QtWidgets.QLabel(self.centralwidget)
+        self.ThresholdLabel = QtWidgets.QLabel(self.centralwidget)
+        self.ModeLabel = QtWidgets.QLabel(self.centralwidget)
+        self.FpsLabel = QtWidgets.QLabel(self.centralwidget)
+        self.PositionLabel = QtWidgets.QLabel(self.centralwidget)
+        self.DefaultLabel = QtWidgets.QLabel(self.centralwidget)
+        self.Mode = "Default"
 
     def setupUi(self, MainWindow):
 
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(700, 700)
+        MainWindow.resize(self.SM.GetSize(720), self.SM.GetSize(700))
 
         self.centralwidget.setObjectName("centralwidget")
-
         self.set_screen()
         self.set_threshold()
         self.set_radiobuttons()
         self.set_positionbox()
+        self.set_resolutionbox()
 
-        self.start_stop.setGeometry(QtCore.QRect(170, 600, 131, 31))
-        self.start_stop.setObjectName("StartStop_ObjectDetection")
-        self.start_stop.clicked.connect(self.startStopButton)
-        self.start_stop.setEnabled(False)
+        self.Start_Stop.setGeometry(QtCore.QRect(self.SM.GetSize(170), self.SM.GetSize(650),
+                                                 self.SM.GetSize(131), self.SM.GetSize(31)))
+        self.Start_Stop.setObjectName("StartStop_ObjectDetection")
+        self.Start_Stop.clicked.connect(self.startStopButton)
+        self.Start_Stop.setEnabled(False)
 
-        self.toolbutton.setGeometry(QtCore.QRect(10, 600, 121, 31))
-        self.toolbutton.setObjectName("toolButton")
-        self.toolbutton.clicked.connect(self.get_object)
+        self.ToolButton.setGeometry(QtCore.QRect(self.SM.GetSize(10), self.SM.GetSize(650), self.SM.GetSize(121), self.SM.GetSize(31)))
+        self.ToolButton.setObjectName("toolButton")
+        self.ToolButton.clicked.connect(self.get_object)
         MainWindow.setCentralWidget(self.centralwidget)
 
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 700, 18))
-        self.menubar.setObjectName("menubar")
-        MainWindow.setMenuBar(self.menubar)
+        self.MenuBar.setGeometry(QtCore.QRect(0, 0, self.SM.GetSize(700), self.SM.GetSize(18)))
+        self.MenuBar.setObjectName("menubar")
+        MainWindow.setMenuBar(self.MenuBar)
 
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
@@ -113,94 +125,115 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.start_stop.setText(_translate("MainWindow", "Start"))
-        self.toolbutton.setText(_translate("MainWindow", "Choose file"))
-        self.thresholdLabel.setText(_translate("MainWindow", str(self.threshold.value() / 100)))
-        self.modeLabel.setText(_translate("MainWindow", "Mode:"))
-        self.defaultLabel.setText(_translate("Main", "Default"))
-        self.fpsLabel.setText(_translate("Main", "FPS"))
-        self.positionLabel.setText(_translate("Main", "Position:"))
+        self.Start_Stop.setText(_translate("MainWindow", "Start"))
+        self.ToolButton.setText(_translate("MainWindow", "Choose file"))
+        self.ThresholdLabel.setText(_translate("MainWindow", str(self.Threshold.value() / 100)))
+        self.ModeLabel.setText(_translate("MainWindow", "Mode:"))
+        self.DefaultLabel.setText(_translate("Main", "Default"))
+        self.FpsLabel.setText(_translate("Main", "FPS"))
+        self.PositionLabel.setText(_translate("Main", "Position:"))
+        self.ResolutionLabel.setText(_translate("Main", "Resolution:"))
 
     def set_screen(self):
-        self.screen.setGeometry(QtCore.QRect(4, -1, 720, 405))
-        self.screen.setText("")
-        self.screen.setScaledContents(True)
-        self.screen.setObjectName("screen")
+        self.Screen.setGeometry(QtCore.QRect(0, 0, self.SM.GetSize(720), self.SM.GetSize(405)))
+        self.Screen.setText("")
+        self.Screen.setScaledContents(True)
+        self.Screen.setObjectName("screen")
         black = QPixmap(16, 16)
         black.fill(Qt.black)
-        self.black = black
-        self.screen.setPixmap(self.black)
+        self.Black = black
+        self.Screen.setPixmap(self.Black)
 
     def set_threshold(self):
-        self.threshold.setGeometry(QtCore.QRect(10, 450, 160, 16))
-        self.threshold.setMinimum(40)
-        self.threshold.setMaximum(100)
-        self.threshold.setOrientation(QtCore.Qt.Horizontal)
-        self.threshold.setObjectName("Threshold")
-        self.threshold.valueChanged.connect(self.update_threshold)
+        self.Threshold.setGeometry(QtCore.QRect(self.SM.GetSize(10), self.SM.GetSize(450), self.SM.GetSize(160), self.SM.GetSize(16)))
+        self.Threshold.setMinimum(40)
+        self.Threshold.setMaximum(100)
+        self.Threshold.setOrientation(QtCore.Qt.Horizontal)
+        self.Threshold.setObjectName("Threshold")
+        self.Threshold.valueChanged.connect(self.update_threshold)
 
-        self.thresholdLabel.setGeometry(QtCore.QRect(200, 450, 160, 16))
-        self.thresholdLabel.setObjectName("thresholdLabel")
+        self.ThresholdLabel.setGeometry(QtCore.QRect(self.SM.GetSize(200), self.SM.GetSize(450),
+                                                     self.SM.GetSize(160), self.SM.GetSize(16)))
+        self.ThresholdLabel.setObjectName("thresholdLabel")
 
     def set_radiobuttons(self):
 
-        self.modeLabel.setGeometry(10, 500, 50, 16)
-        self.modeLabel.setObjectName("modeLabel")
+        self.ModeLabel.setGeometry(self.SM.GetSize(10), self.SM.GetSize(500), self.SM.GetSize(50), self.SM.GetSize(16))
+        self.ModeLabel.setObjectName("modeLabel")
 
-        self.radioButton_mode_Default.setGeometry(QtCore.QRect(70, 500, 95, 20))
-        self.radioButton_mode_Default.setChecked(True)
-        self.radioButton_mode_Default.setObjectName("Default")
-        self.radioButton_mode_Default.clicked.connect(self.update_mode)
-        self.mode = self.radioButton_mode_Default.objectName()
+        self.RadioButton_mode_Default.setGeometry(QtCore.QRect(self.SM.GetSize(70), self.SM.GetSize(500),
+                                                               self.SM.GetSize(95), self.SM.GetSize(20)))
+        self.RadioButton_mode_Default.setChecked(True)
+        self.RadioButton_mode_Default.setObjectName("Default")
+        self.RadioButton_mode_Default.clicked.connect(self.update_mode)
+        self.Mode = self.RadioButton_mode_Default.objectName()
 
+        self.DefaultLabel.setGeometry(QtCore.QRect(self.SM.GetSize(100), self.SM.GetSize(500),
+                                                   self.SM.GetSize(50), self.SM.GetSize(16)))
+        self.DefaultLabel.setObjectName("defaultLabel")
 
-        self.defaultLabel.setGeometry(QtCore.QRect(100, 500, 50, 16))
-        self.defaultLabel.setObjectName("defaultLabel")
+        self.RadioButton_mode_FPS.setGeometry(QtCore.QRect(self.SM.GetSize(170), self.SM.GetSize(500),
+                                                           self.SM.GetSize(95), self.SM.GetSize(20)))
+        self.RadioButton_mode_FPS.setObjectName("FPS")
+        self.RadioButton_mode_FPS.clicked.connect(self.update_mode)
 
-        self.radiobutton_mode_FPS.setGeometry(QtCore.QRect(170, 500, 95, 20))
-        self.radiobutton_mode_FPS.setObjectName("FPS")
-        self.radiobutton_mode_FPS.clicked.connect(self.update_mode)
-
-        self.fpsLabel.setGeometry(QtCore.QRect(200, 500, 160, 16))
-        self.fpsLabel.setObjectName("fpsLabel")
-
+        self.FpsLabel.setGeometry(QtCore.QRect(self.SM.GetSize(200), self.SM.GetSize(500),
+                                               self.SM.GetSize(160), self.SM.GetSize(16)))
+        self.FpsLabel.setObjectName("fpsLabel")
 
     def get_object(self):
         Tk().withdraw()
         filepath = askopenfilename()
-        self.files.append(ss.path_to_cvimage(filepath))
-        self.plainText.appendPlainText(filepath)
-        self.start_stop.setEnabled(True)
+        self.Files.append(pm.path_to_cvimage(filepath))
+        self.PlainText.appendPlainText(filepath)
+        self.Start_Stop.setEnabled(True)
+
+    def set_resolutionbox(self):
+
+        self.ResolutionLabel.setGeometry(self.SM.GetSize(10), self.SM.GetSize(605),
+                             self.SM.GetSize(160), self.SM.GetSize(16))
+
+        self.ResolutionBox.setGeometry(self.SM.GetSize(80), self.SM.GetSize(600),
+                                       self.SM.GetSize(160), self.SM.GetSize(32))
+
+        self.ResolutionBox.addItem("320 x 180")
+        self.ResolutionBox.addItem("640 x 360")
+        self.ResolutionBox.addItem("960 x 540")
+        self.ResolutionBox.addItem("1024 x 576")
+        self.ResolutionBox.addItem("1280 x 720")
+        self.ResolutionBox.activated.connect(self.update_resolution)
 
     def set_positionbox(self):
-        self.positionLabel.setGeometry(QtCore.QRect(10, 550, 160, 16))
-        self.positionLabel.setObjectName("positionLabel")
+        self.PositionLabel.setGeometry(QtCore.QRect(self.SM.GetSize(10), self.SM.GetSize(550),
+                                                    self.SM.GetSize(160), self.SM.GetSize(16)))
+        self.PositionLabel.setObjectName("positionLabel")
 
-        self.positionBox.addItem("UpperLeft")
-        self.positionBox.addItem("UpperRight")
-        self.positionBox.addItem("LowerLeft")
-        self.positionBox.addItem("LowerRight")
-        self.positionBox.setGeometry(80, 545, 160, 32)
-        self.positionBox.activated.connect(self.set_position)
+        self.PositionBox.addItem("UpperLeft")
+        self.PositionBox.addItem("UpperRight")
+        self.PositionBox.addItem("LowerLeft")
+        self.PositionBox.addItem("LowerRight")
+        self.PositionBox.setGeometry(self.SM.GetSize(80), self.SM.GetSize(545),
+                                     self.SM.GetSize(160), self.SM.GetSize(32))
+        self.PositionBox.activated.connect(self.set_position)
 
     def set_position(self, index):
         if index == 0:
-            self.corner.x = 0
-            self.corner.y = 0
+            self.Corner.x = 0
+            self.Corner.y = 0
 
         elif index == 1:
-            self.corner.x = 1920 - 320
-            self.corner.y = 0
+            self.Corner.x = 1920 - 320
+            self.Corner.y = 0
 
         elif index == 2:
-            self.corner.x = 0
-            self.corner.y = 1080 - 180
+            self.Corner.x = 0
+            self.Corner.y = 1080 - 180
 
         elif index == 3:
-            self.corner.x = 1920 - 320
-            self.corner.y = 1080 - 180
+            self.Corner.x = 1920 - 320
+            self.Corner.y = 1080 - 180
 
-        self.corner.move_window()
+        self.Corner.move_window()
 
 
     def update_image_slot(self, np):
@@ -208,43 +241,47 @@ class Ui_MainWindow(object):
         cvImage = cv2.cvtColor(np, cv2.COLOR_BGR2RGB)
         self.lastMatch = cvImage
         ConvertToQtFormat = QImage(cvImage.data, cvImage.shape[1], cvImage.shape[0], QImage.Format_RGB888)
-        Pic = ConvertToQtFormat.scaled(640, 360, Qt.KeepAspectRatio)
+        Pic = ConvertToQtFormat.scaled(self.SM.GetSize(640), self.SM.GetSize(360), Qt.KeepAspectRatio)
         Pic = QPixmap.fromImage(Pic)
-        self.screen.setPixmap(Pic)
+        self.Screen.setPixmap(Pic)
 
     def black_screen(self):
-        self.screen.setPixmap(self.black)
+        self.Screen.setPixmap(self.Black)
 
     def startStopButton(self):
-        if self.start_stop.text() == "Start":
-            self.corner.show()
-            self.corner.Worker = Worker(self.threshold.value(), self.mode, self.files)
-            self.corner.Worker.start()
-            self.corner.Worker.ImageUpdate.connect(self.corner.update_image_slot)
-            self.Worker = Worker(self.threshold.value(), self.mode, self.files)
+        if self.Start_Stop.text() == "Start":
+            self.Corner.show()
+            self.Corner.Worker = Worker(self.Threshold.value(), self.Mode, self.Files)
+            self.Corner.Worker.start()
+            self.Corner.Worker.ImageUpdate.connect(self.Corner.update_image_slot)
+            self.Worker = Worker(self.Threshold.value(), self.Mode, self.Files)
             self.Worker.start()
             self.Worker.ImageUpdate.connect(self.update_image_slot)
             self.Worker.BlackScreen.connect(self.black_screen)
-            self.start_stop.setText("Stop")
+            self.Start_Stop.setText("Stop")
 
-        elif self.start_stop.text() == "Stop":
-            self.corner.Worker.stop()
+        elif self.Start_Stop.text() == "Stop":
+            self.Corner.Worker.stop()
             self.Worker.stop()
-            self.start_stop.setText("Start")
-            self.corner.close()
+            self.Start_Stop.setText("Start")
+            self.Corner.close()
+
+    def update_resolution(self):
+        width, height = self.ResolutionBox.currentText().split(" x ")
+        self.Corner.Width = int(width)
+        self.Corner.Height = int(height)
 
     def update_threshold(self):
-        threshold = self.threshold.value()
-        self.thresholdLabel.setText(str(threshold / 100))
+        threshold = self.Threshold.value()
+        self.ThresholdLabel.setText(str(threshold / 100))
 
     def update_mode(self):
-        if self.radioButton_mode_Default.isChecked():
-            self.mode = 'Default'
+        if self.RadioButton_mode_Default.isChecked():
+            self.Mode = 'Default'
 
-        elif self.radiobutton_mode_FPS.isChecked():
-            self.mode = 'FPS'
+        elif self.RadioButton_mode_FPS.isChecked():
+            self.Mode = 'FPS'
 
-        print(self.mode)
 
 
 class Worker(QThread):
@@ -264,7 +301,7 @@ class Worker(QThread):
 
         while self.ThreadActive:
 
-            qimage = ObjectDetection(self.Threshold, self.Mode).detect_objects(ss.capture_screen(), self.Files)
+            qimage = ObjectDetection(self.Threshold, self.Mode).detect_objects(pm.capture_screen(), self.Files)
             self.ImageUpdate.emit(np.array(qimage))
 
         self.BlackScreen.emit()

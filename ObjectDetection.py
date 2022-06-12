@@ -1,21 +1,15 @@
 import cv2
 import cv2 as cv
 import numpy as np
-from win32api import GetSystemMetrics
-from Screenshot import Screenshot as ss
-import win32api, win32con
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
-from PIL import Image
-import mss
-import time
 
 
 class ObjectDetection:
 
     def __init__(self, threshold, mode):
-        self.threshold = threshold / 100
-        self.mode = mode
+        self.Threshold = threshold / 100
+        self.Mode = mode
 
 
     def np_to_qimage(self, np, w, h):
@@ -32,12 +26,12 @@ class ObjectDetection:
 
         objectImage = objects[0]
 
-        result = cv.matchTemplate(currentImage, objectImage, cv.TM_CCOEFF_NORMED)
+        result = cv.matchTemplate(cv2.cvtColor(currentImage, cv2.COLOR_BGR2GRAY), cv2.cvtColor(objectImage, cv2.COLOR_BGR2GRAY), cv.TM_CCOEFF_NORMED)
 
         object_w = objectImage.shape[1]
         object_h = objectImage.shape[0]
 
-        results = np.where(result >= self.threshold)
+        results = np.where(result >= self.Threshold)
         locations = list(zip(*results[::-1]))
 
         rectangles = []
@@ -56,13 +50,13 @@ class ObjectDetection:
 
             for (x, y, w, h) in rectangles:
 
-                if self.mode == "Default":
+                if self.Mode == "Default":
                     top_left = (x, y)
                     bottom_right = (x + w, y + h)
 
                     cv.rectangle(currentImage, top_left, bottom_right, red, 2, line_type)
 
-                elif self.mode == "FPS":
+                elif self.Mode == "FPS":
                     center_x = x + int(w/2)
                     center_y = y + int(h/2)
                     cv.drawMarker(currentImage, (center_x, center_y), red, marker_type)

@@ -2,14 +2,9 @@ import mss
 import numpy as np
 import cv2 as cv
 import mss.windows
-from PyQt5 import QtGui
-from PIL import Image
-from PIL.ImageQt import ImageQt
 mss.windows.CAPTUREBLT = 0
-import time
 
-
-class Screenshot:
+class PhotoManager:
     @staticmethod
     def capture_screen():
         with mss.mss() as mss_instance:
