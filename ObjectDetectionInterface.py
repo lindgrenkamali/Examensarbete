@@ -12,6 +12,8 @@ import cv2
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
+
+import hsvfilter
 from PhotoManager import PhotoManager as pm
 from PyQt5 import QtCore, QtGui, QtWidgets
 from tkinter import Tk
@@ -20,6 +22,7 @@ import numpy as np
 from ObjectDetection import ObjectDetection
 from win32api import GetSystemMetrics
 from ScreenManager import ScreenManager
+
 
 class CornerWindow(QWidget):
     def __init__(self, x, y, sm, width, height):
@@ -33,12 +36,12 @@ class CornerWindow(QWidget):
         self.setLayout(layout)
         self.Width = width
         self.Height = height
-        self.setFixedSize(self.SM.GetSize(320), self.SM.GetSize(180))
+        self.setFixedSize(self.Width, self.Height)
         self.move(x, y)
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint | QtCore.Qt.WindowStaysOnTopHint)
 
         self.Screen = QLabel()
-        black = QPixmap(self.SM.GetSize(360), self.SM.GetSize(1440))
+        black = QPixmap(1280, 720)
         black.fill(Qt.black)
         self.Screen.setPixmap(black)
         layout.addWidget(self.Screen)
@@ -46,7 +49,7 @@ class CornerWindow(QWidget):
     def update_image_slot(self, np):
         cvImage = cv2.cvtColor(np, cv2.COLOR_BGR2RGB)
         ConvertToQtFormat = QImage(cvImage.data, cvImage.shape[1], cvImage.shape[0], QImage.Format_RGB888)
-        Pic = ConvertToQtFormat.scaled(self.SM.GetSize(320), self.SM.GetSize(180), Qt.KeepAspectRatio)
+        Pic = ConvertToQtFormat.scaled(self.Width, self.Height, Qt.KeepAspectRatio)
         Pic = QPixmap.fromImage(Pic)
         self.Screen.setPixmap(Pic)
 
@@ -56,12 +59,12 @@ class CornerWindow(QWidget):
 
 class Ui_MainWindow(object):
 
-    def __init__(self):
+    def __init__(self, MainWindow):
         super().__init__()
-        screenwidth = GetSystemMetrics(0)
-        screenheight = GetSystemMetrics(1)
+        self.ScreenWidth = GetSystemMetrics(0)
+        self.ScreenHeight = GetSystemMetrics(1)
 
-        self.SM = ScreenManager(screenwidth, screenheight)
+        self.SM = ScreenManager(self.ScreenWidth, self.ScreenWidth)
         self.Corner_x = 0
         self.Corner_y = 0
         self.centralwidget = QtWidgets.QWidget(MainWindow)
@@ -77,10 +80,20 @@ class Ui_MainWindow(object):
         self.ResolutionBox = QtWidgets.QComboBox(self.centralwidget)
         self.PositionBox = QtWidgets.QComboBox(self.centralwidget)
         self.PlainText = QPlainTextEdit(self.centralwidget)
-        self.PlainText.setGeometry(QtCore.QRect(self.SM.GetSize(370), self.SM.GetSize(405),
-                                                self.SM.GetSize(350), self.SM.GetSize(300)))
+        self.PlainText.setGeometry(QtCore.QRect(self.SM.GetSize(420), self.SM.GetSize(405),
+                                                self.SM.GetSize(300), self.SM.GetSize(50)))
         self.PlainText.setReadOnly(True)
         self.Files = []
+        self.H_Min = QtWidgets.QSlider(self.centralwidget)
+        self.S_Min = QtWidgets.QSlider(self.centralwidget)
+        self.V_Min = QtWidgets.QSlider(self.centralwidget)
+        self.H_Max = QtWidgets.QSlider(self.centralwidget)
+        self.S_Max = QtWidgets.QSlider(self.centralwidget)
+        self.V_Max = QtWidgets.QSlider(self.centralwidget)
+        self.S_Add = QtWidgets.QSlider(self.centralwidget)
+        self.S_Sub = QtWidgets.QSlider(self.centralwidget)
+        self.V_Add = QtWidgets.QSlider(self.centralwidget)
+        self.V_Sub = QtWidgets.QSlider(self.centralwidget)
 
         self.ResolutionLabel = QtWidgets.QLabel(self.centralwidget)
         self.ThresholdLabel = QtWidgets.QLabel(self.centralwidget)
@@ -88,12 +101,24 @@ class Ui_MainWindow(object):
         self.FpsLabel = QtWidgets.QLabel(self.centralwidget)
         self.PositionLabel = QtWidgets.QLabel(self.centralwidget)
         self.DefaultLabel = QtWidgets.QLabel(self.centralwidget)
+
+        self.H_MinLabel = QtWidgets.QLabel(self.centralwidget)
+        self.S_MinLabel = QtWidgets.QLabel(self.centralwidget)
+        self.V_MinLabel = QtWidgets.QLabel(self.centralwidget)
+        self.H_MaxLabel = QtWidgets.QLabel(self.centralwidget)
+        self.S_MaxLabel = QtWidgets.QLabel(self.centralwidget)
+        self.V_MaxLabel = QtWidgets.QLabel(self.centralwidget)
+        self.S_AddLabel = QtWidgets.QLabel(self.centralwidget)
+        self.S_SubLabel = QtWidgets.QLabel(self.centralwidget)
+        self.V_AddLabel = QtWidgets.QLabel(self.centralwidget)
+        self.V_SubLabel = QtWidgets.QLabel(self.centralwidget)
+
         self.Mode = "Default"
 
     def setupUi(self, MainWindow):
 
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(self.SM.GetSize(720), self.SM.GetSize(700))
+        MainWindow.resize(self.SM.GetSize(720), self.SM.GetSize(900))
 
         self.centralwidget.setObjectName("centralwidget")
         self.set_screen()
@@ -101,6 +126,7 @@ class Ui_MainWindow(object):
         self.set_radiobuttons()
         self.set_positionbox()
         self.set_resolutionbox()
+        self.set_hsv()
 
         self.Start_Stop.setGeometry(QtCore.QRect(self.SM.GetSize(170), self.SM.GetSize(650),
                                                  self.SM.GetSize(131), self.SM.GetSize(31)))
@@ -129,10 +155,106 @@ class Ui_MainWindow(object):
         self.ToolButton.setText(_translate("MainWindow", "Choose file"))
         self.ThresholdLabel.setText(_translate("MainWindow", str(self.Threshold.value() / 100)))
         self.ModeLabel.setText(_translate("MainWindow", "Mode:"))
-        self.DefaultLabel.setText(_translate("Main", "Default"))
-        self.FpsLabel.setText(_translate("Main", "FPS"))
-        self.PositionLabel.setText(_translate("Main", "Position:"))
-        self.ResolutionLabel.setText(_translate("Main", "Resolution:"))
+        self.DefaultLabel.setText(_translate("MainWindow", "Default"))
+        self.FpsLabel.setText(_translate("MainWindow", "FPS"))
+        self.PositionLabel.setText(_translate("MainWindow", "Position:"))
+        self.ResolutionLabel.setText(_translate("MainWindow", "Resolution:"))
+
+        self.H_MinLabel.setText(_translate("MainWindow", "H-Min: " + str(self.H_Min.value())))
+        self.S_MinLabel.setText(_translate("MainWindow", "S-Min: " + str(self.S_Min.value())))
+        self.V_MinLabel.setText(_translate("MainWindow", "V-Min: " + str(self.V_Min.value())))
+        self.H_MaxLabel.setText(_translate("MainWindow", "H-Max: " + str(self.H_Max.value())))
+        self.S_MaxLabel.setText(_translate("MainWindow", "S-Max: " + str(self.S_Max.value())))
+        self.V_MaxLabel.setText(_translate("MainWindow", "V-Max: " + str(self.V_Max.value())))
+        self.S_AddLabel.setText(_translate("MainWindow", "S-Add: " + str(self.S_Add.value())))
+        self.S_SubLabel.setText(_translate("MainWindow", "S-Sub: " + str(self.S_Sub.value())))
+        self.V_AddLabel.setText(_translate("MainWindow", "V-Add: " + str(self.V_Add.value())))
+        self.V_SubLabel.setText(_translate("MainWindow", "V-Sub: " + str(self.V_Sub.value())))
+
+    def set_hsv(self):
+        self.H_Min.setGeometry(QtCore.QRect(self.SM.GetSize(490), self.SM.GetSize(480),
+                                            self.SM.GetSize(200), self.SM.GetSize(16)))
+
+        self.H_Min.setGeometry(QtCore.QRect(self.SM.GetSize(490), self.SM.GetSize(520),
+                                            self.SM.GetSize(200), self.SM.GetSize(16)))
+
+        self.S_Min.setGeometry(QtCore.QRect(self.SM.GetSize(490), self.SM.GetSize(560),
+                                            self.SM.GetSize(200), self.SM.GetSize(16)))
+        self.V_Min.setGeometry(QtCore.QRect(self.SM.GetSize(490), self.SM.GetSize(600),
+                                            self.SM.GetSize(200), self.SM.GetSize(16)))
+        self.H_Max.setGeometry(QtCore.QRect(self.SM.GetSize(490), self.SM.GetSize(640),
+                                            self.SM.GetSize(200), self.SM.GetSize(16)))
+        self.S_Max.setGeometry(QtCore.QRect(self.SM.GetSize(490), self.SM.GetSize(680),
+                                            self.SM.GetSize(200), self.SM.GetSize(16)))
+        self.V_Max.setGeometry(QtCore.QRect(self.SM.GetSize(490), self.SM.GetSize(720),
+                                            self.SM.GetSize(200), self.SM.GetSize(16)))
+        self.S_Add.setGeometry(QtCore.QRect(self.SM.GetSize(490), self.SM.GetSize(760),
+                                            self.SM.GetSize(200), self.SM.GetSize(16)))
+        self.S_Sub.setGeometry(QtCore.QRect(self.SM.GetSize(490), self.SM.GetSize(800),
+                                            self.SM.GetSize(200), self.SM.GetSize(16)))
+        self.V_Add.setGeometry(QtCore.QRect(self.SM.GetSize(490), self.SM.GetSize(840),
+                                            self.SM.GetSize(200), self.SM.GetSize(16)))
+        self.V_Sub.setGeometry(QtCore.QRect(self.SM.GetSize(490), self.SM.GetSize(880),
+                                            self.SM.GetSize(200), self.SM.GetSize(16)))
+
+        self.H_Min.setMaximum(179)
+        self.S_Min.setMaximum(255)
+        self.V_Min.setMaximum(255)
+        self.H_Max.setMaximum(179)
+        self.S_Max.setMaximum(255)
+        self.V_Max.setMaximum(255)
+        self.S_Add.setMaximum(255)
+        self.S_Sub.setMaximum(255)
+        self.V_Add.setMaximum(255)
+        self.V_Sub.setMaximum(255)
+
+        self.H_Max.setValue(179)
+        self.S_Max.setValue(255)
+        self.V_Max.setValue(255)
+
+        self.H_Min.setOrientation(QtCore.Qt.Horizontal)
+        self.S_Min.setOrientation(QtCore.Qt.Horizontal)
+        self.V_Min.setOrientation(QtCore.Qt.Horizontal)
+        self.H_Max.setOrientation(QtCore.Qt.Horizontal)
+        self.S_Max.setOrientation(QtCore.Qt.Horizontal)
+        self.V_Max.setOrientation(QtCore.Qt.Horizontal)
+        self.S_Add.setOrientation(QtCore.Qt.Horizontal)
+        self.S_Sub.setOrientation(QtCore.Qt.Horizontal)
+        self.V_Add.setOrientation(QtCore.Qt.Horizontal)
+        self.V_Sub.setOrientation(QtCore.Qt.Horizontal)
+
+        self.H_MinLabel.setGeometry(QtCore.QRect(self.SM.GetSize(410), self.SM.GetSize(520),
+                                                 self.SM.GetSize(70), self.SM.GetSize(10)))
+        self.S_MinLabel.setGeometry(QtCore.QRect(self.SM.GetSize(410), self.SM.GetSize(560),
+                                                 self.SM.GetSize(70), self.SM.GetSize(10)))
+        self.V_MinLabel.setGeometry(QtCore.QRect(self.SM.GetSize(410), self.SM.GetSize(600),
+                                                 self.SM.GetSize(70), self.SM.GetSize(10)))
+        self.H_MaxLabel.setGeometry(QtCore.QRect(self.SM.GetSize(410), self.SM.GetSize(640),
+                                                 self.SM.GetSize(70), self.SM.GetSize(10)))
+        self.S_MaxLabel.setGeometry(QtCore.QRect(self.SM.GetSize(410), self.SM.GetSize(680),
+                                                 self.SM.GetSize(70), self.SM.GetSize(10)))
+        self.V_MaxLabel.setGeometry(QtCore.QRect(self.SM.GetSize(410), self.SM.GetSize(720),
+                                                 self.SM.GetSize(70), self.SM.GetSize(10)))
+        self.S_AddLabel.setGeometry(QtCore.QRect(self.SM.GetSize(410), self.SM.GetSize(760),
+                                                 self.SM.GetSize(70), self.SM.GetSize(10)))
+        self.S_SubLabel.setGeometry(QtCore.QRect(self.SM.GetSize(410), self.SM.GetSize(800),
+                                                 self.SM.GetSize(70), self.SM.GetSize(10)))
+        self.V_AddLabel.setGeometry(QtCore.QRect(self.SM.GetSize(410), self.SM.GetSize(840),
+                                                 self.SM.GetSize(70), self.SM.GetSize(10)))
+        self.V_SubLabel.setGeometry(QtCore.QRect(self.SM.GetSize(410), self.SM.GetSize(880),
+                                                 self.SM.GetSize(70), self.SM.GetSize(10)))
+
+        self.H_Min.valueChanged.connect(self.update_h_min)
+        self.S_Min.valueChanged.connect(self.update_s_min)
+        self.V_Min.valueChanged.connect(self.update_v_min)
+        self.H_Max.valueChanged.connect(self.update_h_max)
+        self.S_Max.valueChanged.connect(self.update_s_max)
+        self.V_Max.valueChanged.connect(self.update_v_max)
+        self.S_Add.valueChanged.connect(self.update_s_add)
+        self.S_Sub.valueChanged.connect(self.update_s_sub)
+        self.V_Add.valueChanged.connect(self.update_v_add)
+        self.V_Sub.valueChanged.connect(self.update_v_sub)
+
 
     def set_screen(self):
         self.Screen.setGeometry(QtCore.QRect(0, 0, self.SM.GetSize(720), self.SM.GetSize(405)))
@@ -191,7 +313,7 @@ class Ui_MainWindow(object):
     def set_resolutionbox(self):
 
         self.ResolutionLabel.setGeometry(self.SM.GetSize(10), self.SM.GetSize(605),
-                             self.SM.GetSize(160), self.SM.GetSize(16))
+                                         self.SM.GetSize(160), self.SM.GetSize(16))
 
         self.ResolutionBox.setGeometry(self.SM.GetSize(80), self.SM.GetSize(600),
                                        self.SM.GetSize(160), self.SM.GetSize(32))
@@ -222,16 +344,16 @@ class Ui_MainWindow(object):
             self.Corner.y = 0
 
         elif index == 1:
-            self.Corner.x = 1920 - 320
+            self.Corner.x = self.ScreenWidth - self.Corner.Width
             self.Corner.y = 0
 
         elif index == 2:
             self.Corner.x = 0
-            self.Corner.y = 1080 - 180
+            self.Corner.y = self.ScreenHeight - self.Corner.Height
 
         elif index == 3:
-            self.Corner.x = 1920 - 320
-            self.Corner.y = 1080 - 180
+            self.Corner.x = self.ScreenWidth - self.Corner.Width
+            self.Corner.y = self.ScreenHeight - self.Corner.Height
 
         self.Corner.move_window()
 
@@ -250,11 +372,15 @@ class Ui_MainWindow(object):
 
     def startStopButton(self):
         if self.Start_Stop.text() == "Start":
+            hsv = hsvfilter.HSVFilter(self.H_Min.value(), self.S_Min.value(), self.V_Min.value(),
+                                      self.H_Max.value(), self.S_Max.value(), self.V_Max.value(),
+                                      self.S_Add.value(), self.S_Sub.value(), self.V_Add.value(),
+                                      self.V_Sub.value())
             self.Corner.show()
-            self.Corner.Worker = Worker(self.Threshold.value(), self.Mode, self.Files)
+            self.Corner.Worker = Worker(self.Threshold.value(), self.Mode, self.Files, hsv, False)
             self.Corner.Worker.start()
             self.Corner.Worker.ImageUpdate.connect(self.Corner.update_image_slot)
-            self.Worker = Worker(self.Threshold.value(), self.Mode, self.Files)
+            self.Worker = Worker(self.Threshold.value(), self.Mode, self.Files, hsv, True)
             self.Worker.start()
             self.Worker.ImageUpdate.connect(self.update_image_slot)
             self.Worker.BlackScreen.connect(self.black_screen)
@@ -270,10 +396,12 @@ class Ui_MainWindow(object):
         width, height = self.ResolutionBox.currentText().split(" x ")
         self.Corner.Width = int(width)
         self.Corner.Height = int(height)
+        self.Corner.setFixedSize(self.Corner.Width, self.Corner.Height)
 
     def update_threshold(self):
         threshold = self.Threshold.value()
         self.ThresholdLabel.setText(str(threshold / 100))
+        self.Worker.ObjectDetection.Threshold = self.Threshold.value() / 100
 
     def update_mode(self):
         if self.RadioButton_mode_Default.isChecked():
@@ -283,6 +411,46 @@ class Ui_MainWindow(object):
             self.Mode = 'FPS'
 
 
+    def update_h_max(self):
+        self.H_MaxLabel.setText("H-Max: " + str(self.H_Max.value()))
+        self.Worker.HSV.H_Max = self.H_Max.value()
+
+    def update_s_max(self):
+        self.S_MaxLabel.setText("S-Max: " + str(self.S_Max.value()))
+        self.Worker.HSV.H_Max = self.S_Max.value()
+
+    def update_v_max(self):
+        self.V_MaxLabel.setText("V-Max: " + str(self.V_Max.value()))
+        self.Worker.HSV.H_Max = self.V_Max.value()
+
+    def update_h_min(self):
+        self.H_MinLabel.setText("H-Min: " + str(self.H_Min.value()))
+        self.Worker.HSV.H_Min = self.H_Min.value()
+
+    def update_s_min(self):
+        self.S_MinLabel.setText("S-Min: " + str(self.S_Min.value()))
+        self.Worker.HSV.S_Min = self.S_Min.value()
+
+    def update_v_min(self):
+        self.V_MinLabel.setText("V-Min: " + str(self.V_Min.value()))
+        self.Worker.HSV.V_Min = self.V_Min.value()
+
+    def update_s_add(self):
+        self.S_AddLabel.setText("S-Add: " + str(self.S_Add.value()))
+        self.Worker.HSV.S_Add = self.S_Add.value()
+
+    def update_s_sub(self):
+        self.S_SubLabel.setText("S-Sub: " + str(self.S_Sub.value()))
+        self.Worker.HSV.S_Sub = self.S_Sub.value()
+
+    def update_v_add(self):
+        self.V_AddLabel.setText("V-Add: " + str(self.V_Add.value()))
+        self.Worker.HSV.V_Add = self.V_Add.value()
+
+    def update_v_sub(self):
+        self.V_SubLabel.setText("V-Sub: " + str(self.V_Sub.value()))
+        self.Worker.HSV.V_Sub = self.V_Sub.value()
+
 
 class Worker(QThread):
 
@@ -290,18 +458,19 @@ class Worker(QThread):
     BlackScreen = pyqtSignal()
     UpdateThreshold = pyqtSignal()
 
-    def __init__(self, threshold, mode, files):
+    def __init__(self, threshold, mode, files, hsv, displayhsv):
         super(Worker, self).__init__()
         self.ThreadActive = True
         self.Threshold = threshold
         self.Mode = mode
         self.Files = files
+        self.HSV = hsv
+        self.ObjectDetection = ObjectDetection(threshold, mode, hsv, displayhsv)
 
     def run(self):
 
         while self.ThreadActive:
-
-            qimage = ObjectDetection(self.Threshold, self.Mode).detect_objects(pm.capture_screen(), self.Files)
+            qimage = self.ObjectDetection.detect_objects(pm.capture_screen(), self.Files)
             self.ImageUpdate.emit(np.array(qimage))
 
         self.BlackScreen.emit()
@@ -311,11 +480,11 @@ class Worker(QThread):
         self.quit()
 
 
-if __name__ == "__main__":
+def run_objectdetection():
     import sys
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow()
+    ui = Ui_MainWindow(MainWindow)
     ui.setupUi(MainWindow)
     MainWindow.show()
     sys.exit(app.exec_())
