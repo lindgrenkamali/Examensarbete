@@ -51,12 +51,12 @@ class ObjectDetection:
     def save_img(self, img):
 
         if keyboard.is_pressed("+"):
-            keyboard.release("+")
-            cv.imwrite('PositiveCSGO/{}.jpg'.format(uuid.uuid4()), img)
+            if keyboard.is_pressed("+"):
+                cv.imwrite('PositiveCSGO/{}.jpg'.format(uuid.uuid4()), img)
 
         elif keyboard.is_pressed("-"):
-            keyboard.release("-")
-            cv.imwrite('NegativeCSGO/{}.jpg'.format(uuid.uuid4()), img)
+            if keyboard.is_pressed("-"):
+                cv.imwrite('NegativeCSGO/{}.jpg'.format(uuid.uuid4()), img)
 
     def draw_rectangles(self, img, rectangles):
         col = (0, 255, 0)
@@ -86,7 +86,7 @@ class ObjectDetection:
 
     def detect_objects(self, currentImage, object):
 
-        if self.DisplayHSV:
+        if self.DisplayHSV and self.Mode == "Default":
             currentImage = self.get_hsv(currentImage)
 
         else:
@@ -96,7 +96,7 @@ class ObjectDetection:
 
         objectImage = object
 
-        objectImage = self.resize_image(objectImage, 0.5)
+       # objectImage = self.resize_image(objectImage, 0.5)
 
         rgbImg = currentImage
 

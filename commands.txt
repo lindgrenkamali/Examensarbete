@@ -1,5 +1,9 @@
 C:\Users\david\Downloads\opencv\build\x64\vc15\bin/opencv_annotation.exe --annotations=positive.txt --images=PositiveCSGO/
 
-C:\Users\david\Downloads\opencv\build\x64\vc15\bin/opencv_createsamples.exe -info positive.txt -w 24 -h 24 -num 100 -vec positive.vec
+C:\Users\david\Downloads\opencv\build\x64\vc15\bin/opencv_createsamples.exe -info positive.txt -w 24 -h 48 -num 100 -vec positive.vec
 
-C:\Users\david\Downloads\opencv\build\x64\vc15\bin/opencv_traincascade.exe -data C:\Users\david\Examensarbete\cascadedata -vec C:\Users\david\Examensarbete\positive.vec -bg C:\Users\david\Examensarbete\negative.txt -w 24 -h 24 -numPos 129 -numNeg 300 -numStages 10
+C:\Users\david\Downloads\opencv\build\x64\vc15\bin/opencv_traincascade.exe -data C:\Users\david\Examensarbete\cascadedata -vec C:\Users\david\Examensarbete\positive.vec -bg C:\Users\david\Examensarbete\negative.txt -w 24 -h 48 -numPos 129 -numNeg 300 -numStages 10
+
+C:\Users\david\Downloads\opencv\build\x64\vc15\bin/opencv_traincascade.exe -data C:\Users\david\Examensarbete\cascadedata -vec C:\Users\david\Examensarbete\positive.vec -bg C:\Users\david\Examensarbete\negative.txt -w 24 -h 48 -precalcValBufSize 4000 -precalcIdxBufSize 4000 -numPos 200 -numNeg 400 -numStages 15 -maxFalseAlarmRate 0.4 -minHitRate 0.999
+
+C:\Users\david\Downloads\opencv\build\x64\vc15\bin/opencv_traincascade.exe -data C:\Users\david\Examensarbete\cascadedata -vec C:\Users\david\Examensarbete\positive.vec -bg C:\Users\david\Examensarbete\negative.txt -w 24 -h 48 -precalcValBufSize 4000 -precalcIdxBufSize 4000 -numPos 200 -numNeg 400 -numStages 17 -maxFalseAlarmRate 0.3 -minHitRate 0.999
