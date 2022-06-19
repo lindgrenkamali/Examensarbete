@@ -47,10 +47,12 @@ class Ui_MainWindow(object):
         self.H_Max = QtWidgets.QSlider(self.centralwidget)
         self.S_Max = QtWidgets.QSlider(self.centralwidget)
         self.V_Max = QtWidgets.QSlider(self.centralwidget)
-        self.S_Add = QtWidgets.QSlider(self.centralwidget)
-        self.S_Sub = QtWidgets.QSlider(self.centralwidget)
-        self.V_Add = QtWidgets.QSlider(self.centralwidget)
-        self.V_Sub = QtWidgets.QSlider(self.centralwidget)
+
+        self.lastMatch = None
+        #self.S_Add = QtWidgets.QSlider(self.centralwidget)
+        #self.S_Sub = QtWidgets.QSlider(self.centralwidget)
+        #self.V_Add = QtWidgets.QSlider(self.centralwidget)
+        #self.V_Sub = QtWidgets.QSlider(self.centralwidget)
         self.Window = QtWidgets.QComboBox(self.centralwidget)
 
         self.ResolutionLabel = QtWidgets.QLabel(self.centralwidget)
@@ -67,10 +69,10 @@ class Ui_MainWindow(object):
         self.H_MaxLabel = QtWidgets.QLabel(self.centralwidget)
         self.S_MaxLabel = QtWidgets.QLabel(self.centralwidget)
         self.V_MaxLabel = QtWidgets.QLabel(self.centralwidget)
-        self.S_AddLabel = QtWidgets.QLabel(self.centralwidget)
-        self.S_SubLabel = QtWidgets.QLabel(self.centralwidget)
-        self.V_AddLabel = QtWidgets.QLabel(self.centralwidget)
-        self.V_SubLabel = QtWidgets.QLabel(self.centralwidget)
+        #self.S_AddLabel = QtWidgets.QLabel(self.centralwidget)
+        #self.S_SubLabel = QtWidgets.QLabel(self.centralwidget)
+        #self.V_AddLabel = QtWidgets.QLabel(self.centralwidget)
+        #self.V_SubLabel = QtWidgets.QLabel(self.centralwidget)
 
         self.Mode = "Default"
 
@@ -90,7 +92,7 @@ class Ui_MainWindow(object):
         self.WindowLabel.setGeometry(QtCore.QRect(self.SM.GetSize(10), self.SM.GetSize(555),
                                      self.SM.GetSize(160), self.SM.GetSize(16)))
 
-        self.Window.setGeometry(QtCore.QRect(self.SM.GetSize(80), self.SM.GetSize(550),
+        self.Window.setGeometry(QtCore.QRect(self.SM.GetSize(100), self.SM.GetSize(550),
                                 self.SM.GetSize(160), self.SM.GetSize(32)))
 
         self.Window.addItem("None")
@@ -142,10 +144,10 @@ class Ui_MainWindow(object):
         self.H_MaxLabel.setText(_translate("MainWindow", "H-Max: " + str(self.H_Max.value())))
         self.S_MaxLabel.setText(_translate("MainWindow", "S-Max: " + str(self.S_Max.value())))
         self.V_MaxLabel.setText(_translate("MainWindow", "V-Max: " + str(self.V_Max.value())))
-        self.S_AddLabel.setText(_translate("MainWindow", "S-Add: " + str(self.S_Add.value())))
-        self.S_SubLabel.setText(_translate("MainWindow", "S-Sub: " + str(self.S_Sub.value())))
-        self.V_AddLabel.setText(_translate("MainWindow", "V-Add: " + str(self.V_Add.value())))
-        self.V_SubLabel.setText(_translate("MainWindow", "V-Sub: " + str(self.V_Sub.value())))
+        #self.S_AddLabel.setText(_translate("MainWindow", "S-Add: " + str(self.S_Add.value())))
+        #self.S_SubLabel.setText(_translate("MainWindow", "S-Sub: " + str(self.S_Sub.value())))
+        #self.V_AddLabel.setText(_translate("MainWindow", "V-Add: " + str(self.V_Add.value())))
+        #self.V_SubLabel.setText(_translate("MainWindow", "V-Sub: " + str(self.V_Sub.value())))
 
     def set_hsv(self):
         self.H_Min.setGeometry(QtCore.QRect(self.SM.GetSize(490), self.SM.GetSize(480),
@@ -164,14 +166,14 @@ class Ui_MainWindow(object):
                                             self.SM.GetSize(200), self.SM.GetSize(16)))
         self.V_Max.setGeometry(QtCore.QRect(self.SM.GetSize(490), self.SM.GetSize(720),
                                             self.SM.GetSize(200), self.SM.GetSize(16)))
-        self.S_Add.setGeometry(QtCore.QRect(self.SM.GetSize(490), self.SM.GetSize(760),
-                                            self.SM.GetSize(200), self.SM.GetSize(16)))
-        self.S_Sub.setGeometry(QtCore.QRect(self.SM.GetSize(490), self.SM.GetSize(800),
-                                            self.SM.GetSize(200), self.SM.GetSize(16)))
-        self.V_Add.setGeometry(QtCore.QRect(self.SM.GetSize(490), self.SM.GetSize(840),
-                                            self.SM.GetSize(200), self.SM.GetSize(16)))
-        self.V_Sub.setGeometry(QtCore.QRect(self.SM.GetSize(490), self.SM.GetSize(880),
-                                            self.SM.GetSize(200), self.SM.GetSize(16)))
+        #self.S_Add.setGeometry(QtCore.QRect(self.SM.GetSize(490), self.SM.GetSize(760),
+                                            #self.SM.GetSize(200), self.SM.GetSize(16)))
+        #self.S_Sub.setGeometry(QtCore.QRect(self.SM.GetSize(490), self.SM.GetSize(800),
+                                            #self.SM.GetSize(200), self.SM.GetSize(16)))
+        #self.V_Add.setGeometry(QtCore.QRect(self.SM.GetSize(490), self.SM.GetSize(840),
+                                            #self.SM.GetSize(200), self.SM.GetSize(16)))
+        #self.V_Sub.setGeometry(QtCore.QRect(self.SM.GetSize(490), self.SM.GetSize(880),
+                                            #self.SM.GetSize(200), self.SM.GetSize(16)))
 
         self.H_Min.setMaximum(179)
         self.S_Min.setMaximum(255)
@@ -179,10 +181,11 @@ class Ui_MainWindow(object):
         self.H_Max.setMaximum(179)
         self.S_Max.setMaximum(255)
         self.V_Max.setMaximum(255)
-        self.S_Add.setMaximum(255)
-        self.S_Sub.setMaximum(255)
-        self.V_Add.setMaximum(255)
-        self.V_Sub.setMaximum(255)
+
+        #self.S_Add.setMaximum(255)
+        #self.S_Sub.setMaximum(255)
+        #self.V_Add.setMaximum(255)
+        #self.V_Sub.setMaximum(255)
 
         self.H_Max.setValue(179)
         self.S_Max.setValue(255)
@@ -194,31 +197,32 @@ class Ui_MainWindow(object):
         self.H_Max.setOrientation(QtCore.Qt.Horizontal)
         self.S_Max.setOrientation(QtCore.Qt.Horizontal)
         self.V_Max.setOrientation(QtCore.Qt.Horizontal)
-        self.S_Add.setOrientation(QtCore.Qt.Horizontal)
-        self.S_Sub.setOrientation(QtCore.Qt.Horizontal)
-        self.V_Add.setOrientation(QtCore.Qt.Horizontal)
-        self.V_Sub.setOrientation(QtCore.Qt.Horizontal)
 
-        self.H_MinLabel.setGeometry(QtCore.QRect(self.SM.GetSize(410), self.SM.GetSize(520),
-                                                 self.SM.GetSize(70), self.SM.GetSize(10)))
-        self.S_MinLabel.setGeometry(QtCore.QRect(self.SM.GetSize(410), self.SM.GetSize(560),
-                                                 self.SM.GetSize(70), self.SM.GetSize(10)))
-        self.V_MinLabel.setGeometry(QtCore.QRect(self.SM.GetSize(410), self.SM.GetSize(600),
-                                                 self.SM.GetSize(70), self.SM.GetSize(10)))
-        self.H_MaxLabel.setGeometry(QtCore.QRect(self.SM.GetSize(410), self.SM.GetSize(640),
-                                                 self.SM.GetSize(70), self.SM.GetSize(10)))
-        self.S_MaxLabel.setGeometry(QtCore.QRect(self.SM.GetSize(410), self.SM.GetSize(680),
-                                                 self.SM.GetSize(70), self.SM.GetSize(10)))
-        self.V_MaxLabel.setGeometry(QtCore.QRect(self.SM.GetSize(410), self.SM.GetSize(720),
-                                                 self.SM.GetSize(70), self.SM.GetSize(10)))
-        self.S_AddLabel.setGeometry(QtCore.QRect(self.SM.GetSize(410), self.SM.GetSize(760),
-                                                 self.SM.GetSize(70), self.SM.GetSize(10)))
-        self.S_SubLabel.setGeometry(QtCore.QRect(self.SM.GetSize(410), self.SM.GetSize(800),
-                                                 self.SM.GetSize(70), self.SM.GetSize(10)))
-        self.V_AddLabel.setGeometry(QtCore.QRect(self.SM.GetSize(410), self.SM.GetSize(840),
-                                                 self.SM.GetSize(70), self.SM.GetSize(10)))
-        self.V_SubLabel.setGeometry(QtCore.QRect(self.SM.GetSize(410), self.SM.GetSize(880),
-                                                 self.SM.GetSize(70), self.SM.GetSize(10)))
+        #self.S_Add.setOrientation(QtCore.Qt.Horizontal)
+        #self.S_Sub.setOrientation(QtCore.Qt.Horizontal)
+        #self.V_Add.setOrientation(QtCore.Qt.Horizontal)
+        #self.V_Sub.setOrientation(QtCore.Qt.Horizontal)
+
+        self.H_MinLabel.setGeometry(QtCore.QRect(self.SM.GetSize(380), self.SM.GetSize(520),
+                                                 self.SM.GetSize(90), self.SM.GetSize(15)))
+        self.S_MinLabel.setGeometry(QtCore.QRect(self.SM.GetSize(380), self.SM.GetSize(560),
+                                                 self.SM.GetSize(90), self.SM.GetSize(15)))
+        self.V_MinLabel.setGeometry(QtCore.QRect(self.SM.GetSize(380), self.SM.GetSize(600),
+                                                 self.SM.GetSize(90), self.SM.GetSize(15)))
+        self.H_MaxLabel.setGeometry(QtCore.QRect(self.SM.GetSize(380), self.SM.GetSize(640),
+                                                 self.SM.GetSize(90), self.SM.GetSize(15)))
+        self.S_MaxLabel.setGeometry(QtCore.QRect(self.SM.GetSize(380), self.SM.GetSize(680),
+                                                 self.SM.GetSize(90), self.SM.GetSize(15)))
+        self.V_MaxLabel.setGeometry(QtCore.QRect(self.SM.GetSize(380), self.SM.GetSize(720),
+                                                 self.SM.GetSize(90), self.SM.GetSize(15)))
+        #self.S_AddLabel.setGeometry(QtCore.QRect(self.SM.GetSize(410), self.SM.GetSize(760),
+                                                 #self.SM.GetSize(70), self.SM.GetSize(10)))
+        #self.S_SubLabel.setGeometry(QtCore.QRect(self.SM.GetSize(410), self.SM.GetSize(800),
+                                                 #self.SM.GetSize(70), self.SM.GetSize(10)))
+        #self.V_AddLabel.setGeometry(QtCore.QRect(self.SM.GetSize(410), self.SM.GetSize(840),
+                                                 #self.SM.GetSize(70), self.SM.GetSize(10)))
+        #self.V_SubLabel.setGeometry(QtCore.QRect(self.SM.GetSize(410), self.SM.GetSize(880),
+                                                 #self.SM.GetSize(70), self.SM.GetSize(10)))
 
         self.H_Min.valueChanged.connect(self.update_h_min)
         self.S_Min.valueChanged.connect(self.update_s_min)
@@ -226,10 +230,11 @@ class Ui_MainWindow(object):
         self.H_Max.valueChanged.connect(self.update_h_max)
         self.S_Max.valueChanged.connect(self.update_s_max)
         self.V_Max.valueChanged.connect(self.update_v_max)
-        self.S_Add.valueChanged.connect(self.update_s_add)
-        self.S_Sub.valueChanged.connect(self.update_s_sub)
-        self.V_Add.valueChanged.connect(self.update_v_add)
-        self.V_Sub.valueChanged.connect(self.update_v_sub)
+
+        #self.S_Add.valueChanged.connect(self.update_s_add)
+        #self.S_Sub.valueChanged.connect(self.update_s_sub)
+        #self.V_Add.valueChanged.connect(self.update_v_add)
+        #self.V_Sub.valueChanged.connect(self.update_v_sub)
 
 
     def set_screen(self):
@@ -293,7 +298,7 @@ class Ui_MainWindow(object):
         self.ResolutionLabel.setGeometry(self.SM.GetSize(10), self.SM.GetSize(655),
                                          self.SM.GetSize(160), self.SM.GetSize(16))
 
-        self.ResolutionBox.setGeometry(self.SM.GetSize(80), self.SM.GetSize(650),
+        self.ResolutionBox.setGeometry(self.SM.GetSize(100), self.SM.GetSize(650),
                                        self.SM.GetSize(160), self.SM.GetSize(32))
 
         self.ResolutionBox.addItem("320 x 180")
@@ -312,7 +317,7 @@ class Ui_MainWindow(object):
         self.PositionBox.addItem("UpperRight")
         self.PositionBox.addItem("LowerLeft")
         self.PositionBox.addItem("LowerRight")
-        self.PositionBox.setGeometry(self.SM.GetSize(80), self.SM.GetSize(595),
+        self.PositionBox.setGeometry(self.SM.GetSize(100), self.SM.GetSize(595),
                                      self.SM.GetSize(160), self.SM.GetSize(32))
         self.PositionBox.activated.connect(self.set_position)
 
@@ -337,7 +342,7 @@ class Ui_MainWindow(object):
 
 
     def update_image_slot(self, np):
-        self.lastMatch = np
+
         cvImage = cv2.cvtColor(np, cv2.COLOR_BGR2RGB)
         ConvertToQtFormat = QImage(cvImage.data, cvImage.shape[1], cvImage.shape[0], QImage.Format_RGB888)
         Pic = ConvertToQtFormat.scaled(self.SM.GetSize(640), self.SM.GetSize(360), Qt.KeepAspectRatio)
@@ -350,16 +355,15 @@ class Ui_MainWindow(object):
     def startStopButton(self):
         if self.Start_Stop.text() == "Start":
             hsv = hsvfilter.HSVFilter(self.H_Min.value(), self.S_Min.value(), self.V_Min.value(),
-                                      self.H_Max.value(), self.S_Max.value(), self.V_Max.value(),
-                                      self.S_Add.value(), self.S_Sub.value(), self.V_Add.value(),
-                                      self.V_Sub.value())
+                                      self.H_Max.value(), self.S_Max.value(), self.V_Max.value())
+
             self.Corner.show()
             self.Corner.Worker = Worker(self.Threshold.value(), self.Mode, self.File,
-                                        hsv, False, self.Window.currentText())
+                                        hsv, False, self.Window.currentText(), True)
             self.Corner.Worker.start()
             self.Corner.Worker.ImageUpdate.connect(self.Corner.update_image_slot)
             self.Worker = Worker(self.Threshold.value(), self.Mode, self.File, hsv, True,
-                                 self.Window.currentText())
+                                 self.Window.currentText(), False)
             self.Worker.start()
             self.Worker.ImageUpdate.connect(self.update_image_slot)
             self.Worker.BlackScreen.connect(self.black_screen)
@@ -370,8 +374,9 @@ class Ui_MainWindow(object):
             self.Worker.stop()
             self.Start_Stop.setText("Start")
             self.Corner.close()
-            cv2.imshow("LastMatch", self.lastMatch)
-            cv2.waitKey()
+            if self.Corner.lastMatch is not None:
+                cv2.imshow("LastMatch", self.Corner.lastMatch)
+                cv2.waitKey()
 
     def update_resolution(self):
         width, height = self.ResolutionBox.currentText().split(" x ")
@@ -382,8 +387,9 @@ class Ui_MainWindow(object):
     def update_threshold(self):
         threshold = self.Threshold.value()
         self.ThresholdLabel.setText(str(threshold / 100))
-        self.Worker.ObjectDetection.Threshold = self.Threshold.value() / 100
-        self.Corner.Worker.ObjectDetection.Threshold = self.Threshold.value() / 100
+        if hasattr(self, "Worker") and hasattr(self.Corner, "Worker"):
+            self.Worker.ObjectDetection.Threshold = self.Threshold.value() / 100
+            self.Corner.Worker.ObjectDetection.Threshold = self.Threshold.value() / 100
 
     def update_mode(self):
         if self.RadioButton_mode_Default.isChecked():
@@ -396,10 +402,10 @@ class Ui_MainWindow(object):
             self.H_Min.setEnabled(True)
             self.S_Min.setEnabled(True)
             self.V_Min.setEnabled(True)
-            self.S_Add.setEnabled(True)
-            self.S_Sub.setEnabled(True)
-            self.V_Add.setEnabled(True)
-            self.V_Sub.setEnabled(True)
+            #self.S_Add.setEnabled(True)
+            #self.S_Sub.setEnabled(True)
+            #self.V_Add.setEnabled(True)
+            #self.V_Sub.setEnabled(True)
             if len(self.File):
                 self.Start_Stop.setEnabled(True)
             else:
@@ -416,51 +422,56 @@ class Ui_MainWindow(object):
             self.H_Min.setEnabled(False)
             self.S_Min.setEnabled(False)
             self.V_Min.setEnabled(False)
-            self.S_Add.setEnabled(False)
-            self.S_Sub.setEnabled(False)
-            self.V_Add.setEnabled(False)
-            self.V_Sub.setEnabled(False)
+            #self.S_Add.setEnabled(False)
+            #self.S_Sub.setEnabled(False)
+            #self.V_Add.setEnabled(False)
+            #self.V_Sub.setEnabled(False)
 
 
     def update_h_max(self):
         self.H_MaxLabel.setText("H-Max: " + str(self.H_Max.value()))
-        self.Worker.HSV.H_Max = self.H_Max.value()
+        if hasattr(self, "Worker"):
+            self.Worker.HSV.H_Max = self.H_Max.value()
 
     def update_s_max(self):
         self.S_MaxLabel.setText("S-Max: " + str(self.S_Max.value()))
-        self.Worker.HSV.H_Max = self.S_Max.value()
+        if hasattr(self, "Worker"):
+            self.Worker.HSV.H_Max = self.S_Max.value()
 
     def update_v_max(self):
         self.V_MaxLabel.setText("V-Max: " + str(self.V_Max.value()))
-        self.Worker.HSV.H_Max = self.V_Max.value()
+        if hasattr(self, "Worker"):
+            self.Worker.HSV.H_Max = self.V_Max.value()
 
     def update_h_min(self):
         self.H_MinLabel.setText("H-Min: " + str(self.H_Min.value()))
-        self.Worker.HSV.H_Min = self.H_Min.value()
+        if hasattr(self, "Worker"):
+            self.Worker.HSV.H_Min = self.H_Min.value()
 
     def update_s_min(self):
         self.S_MinLabel.setText("S-Min: " + str(self.S_Min.value()))
-        self.Worker.HSV.S_Min = self.S_Min.value()
+        if hasattr(self, "Worker"):
+            self.Worker.HSV.S_Min = self.S_Min.value()
 
     def update_v_min(self):
         self.V_MinLabel.setText("V-Min: " + str(self.V_Min.value()))
         self.Worker.HSV.V_Min = self.V_Min.value()
 
-    def update_s_add(self):
-        self.S_AddLabel.setText("S-Add: " + str(self.S_Add.value()))
-        self.Worker.HSV.S_Add = self.S_Add.value()
+    #def update_s_add(self):
+        #self.S_AddLabel.setText("S-Add: " + str(self.S_Add.value()))
+        #self.Worker.HSV.S_Add = self.S_Add.value()
 
-    def update_s_sub(self):
-        self.S_SubLabel.setText("S-Sub: " + str(self.S_Sub.value()))
-        self.Worker.HSV.S_Sub = self.S_Sub.value()
+    #def update_s_sub(self):
+        #self.S_SubLabel.setText("S-Sub: " + str(self.S_Sub.value()))
+        #self.Worker.HSV.S_Sub = self.S_Sub.value()
 
-    def update_v_add(self):
-        self.V_AddLabel.setText("V-Add: " + str(self.V_Add.value()))
-        self.Worker.HSV.V_Add = self.V_Add.value()
+    #def update_v_add(self):
+        #self.V_AddLabel.setText("V-Add: " + str(self.V_Add.value()))
+        #self.Worker.HSV.V_Add = self.V_Add.value()
 
-    def update_v_sub(self):
-        self.V_SubLabel.setText("V-Sub: " + str(self.V_Sub.value()))
-        self.Worker.HSV.V_Sub = self.V_Sub.value()
+    #def update_v_sub(self):
+        #self.V_SubLabel.setText("V-Sub: " + str(self.V_Sub.value()))
+        #self.Worker.HSV.V_Sub = self.V_Sub.value()
 
 
 def run_objectdetection():

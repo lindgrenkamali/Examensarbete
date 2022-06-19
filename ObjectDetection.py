@@ -7,11 +7,12 @@ import keyboard
 
 class ObjectDetection:
 
-    def __init__(self, threshold, mode, hsv, displayhsv):
+    def __init__(self, threshold, mode, hsv, displayhsv, returnImg):
         self.Threshold = threshold / 100
         self.Mode = mode
         self.HSV = hsv
         self.DisplayHSV = displayhsv
+        self.ReturnImg = returnImg
 
     def np_to_qimage(self, np, w, h):
         cvImage = cv.cvtColor(np, cv.COLOR_BGR2RGB)
@@ -58,6 +59,10 @@ class ObjectDetection:
             if keyboard.is_pressed("-"):
                 cv.imwrite('NegativeCSGO/{}.jpg'.format(uuid.uuid4()), img)
 
+        elif self.Mode == "Default" and keyboard.is_pressed("§"):
+            if keyboard.is_pressed("§"):
+                cv.imwrite('hsvfiles/{}.jpg'.format(uuid.uuid4()), img)
+
     def draw_rectangles(self, img, rectangles):
         col = (0, 255, 0)
         line_type = cv.LINE_4
@@ -71,17 +76,6 @@ class ObjectDetection:
 
         return img
 
-    def draw_crosshairs(self, img, rectangles):
-        col = (0, 255, 0)
-        marker_type = cv.MARKER_CROSS
-
-        for (x, y, w, h) in rectangles:
-
-            center_x = x + int(w / 2)
-            center_y = y + int(h / 2)
-            cv.drawMarker(img, (center_x, center_y), col, marker_type)
-
-        return img
 
 
     def detect_objects(self, currentImage, object):
@@ -89,21 +83,20 @@ class ObjectDetection:
         if self.DisplayHSV and self.Mode == "Default":
             currentImage = self.get_hsv(currentImage)
 
-        else:
-            self.save_img(currentImage)
+        self.save_img(currentImage)
 
         currentImage = self.resize_image(currentImage, 0.5)
 
         objectImage = object
-
-       # objectImage = self.resize_image(objectImage, 0.5)
 
         rgbImg = currentImage
 
 
         if self.Mode == "Default":
 
-            result = cv.matchTemplate(currentImage, objectImage, cv.TM_CCOEFF_NORMED)
+            objectImage = self.resize_image(objectImage, 0.5)
+
+            result = cv.matchTemplate(cv.cvtColor(currentImage, cv.COLOR_RGB2GRAY), cv.cvtColor(objectImage, cv.COLOR_RGB2GRAY), cv.TM_CCOEFF_NORMED)
             object_w = objectImage.shape[1]
             object_h = objectImage.shape[0]
 
@@ -118,11 +111,21 @@ class ObjectDetection:
 
             rectangles, weights = cv.groupRectangles(rectangles, groupThreshold=1, eps=0.5)
 
-            return self.draw_rectangles(rgbImg, rectangles)
+            if len(rectangles) and self.ReturnImg:
+
+                return self.draw_rectangles(rgbImg, rectangles), self.ReturnImg
+
+            else:
+                return self.draw_rectangles(rgbImg, rectangles), False
 
         elif self.Mode == "FPS":
             rectangles = self.cascade_detection(rgbImg)
 
-            return self.draw_rectangles(rgbImg, rectangles)
+            if len(rectangles) and self.ReturnImg:
 
-        return rgbImg
+                return self.draw_rectangles(rgbImg, rectangles), self.ReturnImg
+
+            else:
+                return self.draw_rectangles(rgbImg, rectangles), False
+
+        return rgbImg, False
