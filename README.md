@@ -4,7 +4,7 @@ Examensarbete - YH 30 - Campus Varberg
 # Verktyg
 
 PyCharm Community Edition\
-Visual Studio Code
+Visual Studio Code\
 PyQt Designer
 
 # Kodspråk
