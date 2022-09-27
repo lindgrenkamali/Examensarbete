@@ -48,4 +48,4 @@ class PhotoManager:
 
     @staticmethod
     def path_to_cvimage(filepath):
-        return cv.imread(filepath, cv.IMREAD_UNCHANGED)
+        return cv.imdecode(np.fromfile(filepath, dtype=np.uint8), cv.IMREAD_UNCHANGED)
