@@ -47,3 +47,6 @@ https://stackoverflow.com/ \
 https://www.youtube.com/playlist?list=PL1m2M8LQlzfKtkKq2lK5xko4X-8EZzFPI \
 https://opencv.org/ \
 https://pypi.org/
+
+# Exempelbilder
+<img src="https://github.com/lindgrenkamali/Examensarbete-ObjectDetection-with-UI/blob/main/README-IMAGES/objectdetection.png?raw=true" />
