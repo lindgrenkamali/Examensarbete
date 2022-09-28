@@ -50,3 +50,5 @@ https://pypi.org/
 
 # Exempelbilder
 <img src="https://github.com/lindgrenkamali/Examensarbete-ObjectDetection-with-UI/blob/main/README-IMAGES/objectdetection.png?raw=true" />
+I exemplet har jag använt klippt ut en av solrosorna från bilden. Med 54% (0.54) säkerhet kunde programmet identifiera 4 solrosor från bilden som ringas in med 
+gröna fyrkanter.
